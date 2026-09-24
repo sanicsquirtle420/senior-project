@@ -11,6 +11,9 @@ node_modules/
 dist/
 dist-ssr
 *.local
+compose.yaml
+venv/
+.env
 
 # Editor directories and files
 .vscode/*
