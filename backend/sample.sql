@@ -1,13 +1,9 @@
-DROP TABLE IF EXISTS sample ;
+DROP TABLE IF EXISTS users ;
 
-CREATE TABLE sample (
-    sampleID int NOT NULL PRIMARY KEY,
-    quote varchar(50) NOT NULL,
-    n varchar(30) NOT NULL
+CREATE TABLE users (
+    userID int AUTO_INCREMENT PRIMARY KEY,
+    name varchar(15) NOT NULL,
+    username varchar(15) NOT NULL,
+    email varchar(35) NOT NULL,
+    password varchar(100) NOT NULL
 ) ;
-
-INSERT INTO sample(sampleID, quote, n) VALUES(1, "Kitsune", "Kiriko") ;
-INSERT INTO sample(sampleID, quote, n) VALUES(2, "Martian", "Juno") ;
-INSERT INTO sample(sampleID, quote, n) VALUES(3, "Gamer", "D.Va") ;
-INSERT INTO sample(sampleID, quote, n) VALUES(4, "Omnic", "Ramattra") ;
-INSERT INTO sample(sampleID, quote, n) VALUES(5, "Librarian", "Paige") ;

@@ -4,7 +4,7 @@ Senior project for the University of Mississippi by [Diego R.](https://github.co
 ## Set Up
 Dependencies: `npm python3`
 
-pip Dependecnies: `mariadb dotenv`
+pip Dependecnies: `mariadb dotenv fastapi uvicorn bcrypt`
 
 Creating the envoirnment
 ```bash

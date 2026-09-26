@@ -18,19 +18,12 @@ db_config = {
     "database": DATABASE
 }
 
-try:
-    conn = mariadb.connect(**db_config)
-    print("Connected successfully!")
+def get_connection():
+    try:
+        conn = mariadb.connect(**db_config)
+        print("Connected successfully!")
+        return conn
 
-except mariadb.Error as e:
-    print(f"Error connecting to MariaDB: {e}")
-    sys.exit(1)
-
-cursor = conn.cursor()
-try:
-    cursor.execute("SELECT * FROM sample")
-
-    for(sampleID, quote, n) in cursor:
-        print(f"ID: {sampleID} | \"{quote}\" - {n}")
-except mariadb.Error as e:
-    print(f"Error retrieving data: {e}")
+    except mariadb.Error as e:
+        print(f"Error connecting to MariaDB: {e}")
+        sys.exit(1)

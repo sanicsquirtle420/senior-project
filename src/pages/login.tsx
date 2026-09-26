@@ -1,25 +1,22 @@
-import { Link } from "react-router-dom" ;
+import { Link, useNavigate } from "react-router-dom" ;
 import React, { useState } from "react" ;
 
 function Login() {
     const [email, setEmail] = useState("") ;
     const [password, setPassword] = useState("") ;
     const [message, setMessage] = useState("") ;
-    const handleLogin =(e)=> {
-        e.preventDefault() ;
-
-        if(email === "druiz@sanicsquirtle.com" && password === "1234") {
-            setMessage("Success!") ;
-        } else {
-            setMessage("Invalid.") ;
-        }
-    } ;
+    const navigate = useNavigate() ;
+    const handleSubmit =(event)=> {
+        event.preventDefault() ;
+        navigate("/main")
+    }
+        
 
     return(
         <>
         
         <h1>Login</h1>
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSubmit}>
         <input type="email" placeholder="user@example.com" value={email} 
             onChange={(e) => setEmail(e.target.value)} required/>
         <input type="password" placeholder="Password" value={password} 
