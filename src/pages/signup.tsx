@@ -3,7 +3,9 @@ import { useAuth } from "../utils/AuthContext" ;
 import { LoginResponse } from "../utils/types";
 import { useState } from "react" ;
 
-const Login = () => {
+const Signup = () => {
+    const [name, setName] = useState("") ;
+    const [username, setUsername] = useState("") ;
     const [email, setEmail] = useState("") ;
     const [password, setPassword] = useState("") ;
     const [error, setError] = useState("") ;
@@ -43,14 +45,39 @@ const Login = () => {
 
     return (
         <form onSubmit={handleLogin}>
-            <h1>Login</h1>
+            <h1>Signup</h1>
             {error && <p style={{color: "#ff0000"}}>{error}</p>}
 
+            <div className="form-row">
+                <label htmlFor="name">Name</label>
+                <input 
+                    id="name"
+                    type="text"
+                    maxLength={15}
+                    placeholder="Your Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required 
+                />
+            </div>
+            <div className="form-row">
+                <label htmlFor="username">Username</label>
+                <input 
+                    id="username"
+                    type="text"
+                    maxLength={15}
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required 
+                />
+            </div>
             <div className="form-row">
                 <label htmlFor="email">Email</label>
                 <input 
                     id="email"
                     type="email"
+                    maxLength={35}
                     placeholder="user@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -62,6 +89,7 @@ const Login = () => {
                 <input 
                     id="password"
                     type="password"
+                    maxLength={24}
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -72,9 +100,9 @@ const Login = () => {
                 {loading ? "Logging in...": "Login"}
             </button>
 
-            <p>Don't have an account? <Link to="/signup">Sign Up</Link> | Return to <Link to="/">home</Link>.</p>
+            <p>Already have an account? <Link to="/login">Login</Link> | Return to <Link to="/">home</Link>.</p>
         </form>
     ) ;
 } ;
 
-export default Login ;
+export default Signup ;

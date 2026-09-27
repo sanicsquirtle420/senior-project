@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom" ;
 
-function Index() {
+const Index = () => {
     return(
-        <>
-        <h1>PlanPal</h1>
-        <p>Click here to <Link to="/login">login</Link>.</p>
-        <p>Hello welcome to the index page!</p>
-        <img className="screenshot" src="https://media1.tenor.com/m/M5IQwflJz0UAAAAd/juno-overwatch.gif" alt="Juno Overwatch waving gif"/>
-        </>
+        <div>
+            <h1>PlanPal</h1>
+            <p>Welcome to the index page for PlanPal!</p>
+            <img className="screenshot" src="https://media1.tenor.com/m/eCS_N1ZYbIsAAAAd/the-fragrant-flower-blooms-with-dignity-kaoruko-waguri.gif"
+                alt="Karouko Waguri gif"></img>
+            <p>Click here to <Link to="/login">login</Link>.</p>
+        </div>
     ) ;
-}
-
+} ;
 export default Index ;

@@ -1,7 +1,10 @@
 import { HashRouter as Router, Routes, Route } from "react-router-dom" ;
+import { ProtectedRoute } from "./utils/ProtectedRoute" ;
 import { lazy, Suspense } from "react" ;
-const Index = lazy(() => import("./pages/index")) ;
+const Index = lazy(() => import("./pages/index")) ; 
+const Dashboard = lazy(() => import("./pages/dashboard")) ;
 const Login = lazy(() => import("./pages/login")) ;
+const Signup = lazy(() => import("./pages/signup")) ;
 
 function App() {
     return(
@@ -17,6 +20,11 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Index />}></Route>
                     <Route path="/login" element={<Login />}></Route>
+                    <Route path="/signup" element={<Signup />}></Route>
+
+                    <Route element={<ProtectedRoute />}>
+                        <Route path="/dashboard" element={<Dashboard />}></Route>
+                    </Route>
                 </Routes>
             </Suspense>
         </Router>

@@ -21,7 +21,6 @@ db_config = {
 def get_connection():
     try:
         conn = mariadb.connect(**db_config)
-        print("Connected successfully!")
         return conn
 
     except mariadb.Error as e:

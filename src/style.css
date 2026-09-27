@@ -43,16 +43,41 @@ p.italics {
 	color: #a6adc8 ;
 }
 
-span.code-line {
-	background-color: #1e1e2e ;
-	border-radius: 5px ;
-	font-family: monospace ;
-	color: #cdd6f4 ;
-	padding: 2px 5px 2px 5px ;
+label {
+	font-family: "Open Sans" ;
+	color: #ffffff ;
+	padding-right: 10px ;
 }
 
-td {
-	padding-right: 25px ;
+input {
+	width: 50% ;
+	padding: 5px ;
+	align-content: center ;
+}
+
+input::placeholder {
+	font-family: "Open Sans" ;
+}
+
+button {
+	background-color: #514a5d ;
+	color: #ffffff ;
+	border: none ;
+	border-radius: 4px;
+	text-align: center ;
+	padding: 10px 20px ;
+}
+
+button:hover {
+	background-color: #b69ddd ;
+	color: #000000 ;
+}
+
+.form-row {
+	display: grid ;
+	grid-template-columns: 80px 1fr ;
+	align-items: center ;
+	margin-bottom: 12px ;
 }
 
 a {
