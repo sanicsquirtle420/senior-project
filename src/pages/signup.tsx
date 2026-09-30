@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom" ;
 import { useAuth } from "../utils/AuthContext" ;
-import { LoginResponse } from "../utils/types";
+import { SignupResponse } from "../utils/types";
 import { useState } from "react" ;
 
 const Signup = () => {
@@ -11,19 +11,18 @@ const Signup = () => {
     const [error, setError] = useState("") ;
     const [loading, setLoading] = useState(false) ;
 
-    const { login } = useAuth() ;
     const navigate = useNavigate() ;
 
-    const handleLogin = async (e) => {
+    const handleSignup = async (e) => {
         e.preventDefault() ;
         setError("") ;
         setLoading(true) ;
 
         try {
-            const response = await fetch("http://localhost:8000/login", {
+            const response = await fetch("http://localhost:8000/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ name, username, email, password }),
             }) ;
 
             if(!response.ok) {
@@ -31,11 +30,7 @@ const Signup = () => {
                 throw new Error(errData.detail || "Login failed") ;
             }
              
-            const data = (await response.json()) as LoginResponse ;
-            const { token, ...user} = data ;
-
-            login(user, data) ;
-            navigate("/dashboard") ;
+            navigate("/login") ;
         } catch (err) {
             setError(err.message) ;
         } finally {
@@ -44,9 +39,9 @@ const Signup = () => {
     } ;
 
     return (
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSignup}>
             <h1>Signup</h1>
-            {error && <p style={{color: "#ff0000"}}>{error}</p>}
+            {error && <p style={{color: "#f38ba8"}}>{error}</p>}
 
             <div className="form-row">
                 <label htmlFor="name">Name</label>
@@ -97,7 +92,7 @@ const Signup = () => {
                 />
             </div>
             <button type="submit" disabled={loading}>
-                {loading ? "Logging in...": "Login"}
+                {loading ? "Creating account...": "Create Account"}
             </button>
 
             <p>Already have an account? <Link to="/login">Login</Link> | Return to <Link to="/">home</Link>.</p>

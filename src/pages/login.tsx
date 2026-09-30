@@ -44,7 +44,7 @@ const Login = () => {
     return (
         <form onSubmit={handleLogin}>
             <h1>Login</h1>
-            {error && <p style={{color: "#ff0000"}}>{error}</p>}
+            {error && <p style={{color: "#f38ba8"}}>{error}</p>}
 
             <div className="form-row">
                 <label htmlFor="email">Email</label>

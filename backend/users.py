@@ -18,7 +18,7 @@ def create_account(name:str, username: str, email:str, password: str):
         cursor.close()
         conn.close()
 
-def hash_password(password:str):
+def hash_password(password: str):
     salt = bcrypt.gensalt()
     tmp = password.encode("utf-8")
     passwd = bcrypt.hashpw(tmp, salt).decode("utf-8")

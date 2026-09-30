@@ -7,3 +7,7 @@ export interface User {
 export interface LoginResponse extends User {
     token: string ;
 }
+
+export interface SignupResponse extends User {
+    password: string ;
+}
