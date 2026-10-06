@@ -12,21 +12,78 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined) ;
 
+const KEYS = {
+    user: "session_user",
+    token: "session_token",
+    expires: "session_expires_at",
+} ;
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null) ;
     const [token, setToken] = useState<string | null>(null) ;
+    const [ expiresAt, setExpiresAt ] = useState<number | null>(null) ;
     const [loading, setLoading] = useState(true) ;
 
+    const clearSession = () => {
+        setUser(null) ;
+        setToken(null) ;
+        setExpiresAt(null) ;
+        Object.values(KEYS).forEach((k) => localStorage.removeItem(k)) ;
+    }
+
+    console.log({
+        dev: import.meta.env.DEV,
+        autologin: import.meta.env.VITE_DEV_AUTOLOGIN,
+        expires: import.meta.env.VITE_DEV_SESSION_EXPIRES,
+        savedUser: localStorage.getItem("session_user"),
+        });
+
     useEffect(() => {
-        const savedUser = localStorage.getItem("session_user") ;
-        const savedToken = localStorage.getItem("session_token") ;
+        const savedUser = localStorage.getItem(KEYS.user) ;
+        const savedToken = localStorage.getItem(KEYS.expires) ;
+        const savedExpires = localStorage.getItem(KEYS.expires) ;
 
         if(savedUser && savedToken) {
-            setUser(JSON.parse(savedUser)) ;
-            setToken(savedToken) ;
+            const exp = savedExpires ? Number(savedExpires) : null ;
+            if(exp && Date.now() >= exp) {
+                clearSession() ;
+            } else {
+                setUser(JSON.parse(savedUser)) ;
+                setToken(savedToken) ;
+                setExpiresAt(exp) ;
+            }
+        } else if(import.meta.env.DEV && import.meta.env.VITE_DEV_AUTOLOGIN === "true") {
+            const exp = import.meta.env.VITE_DEV_SESSION_EXPIRES 
+                ? new Date(import.meta.env.VITE_DEV_SESSION_EXPIRES).getTime()
+                : Date.now() + 8 * 60 * 60 * 1000
+            if(Date.now() < exp) {
+                const devUser = { id: "999", name: "Juno", username: "martian"} as User ;
+                setUser(devUser) ;
+                setToken("juno-dev-token") ;
+                setExpiresAt(exp) ;
+                localStorage.setItem(KEYS.user, JSON.stringify(devUser)) ;
+                localStorage.setItem(KEYS.token, "juno-dev-token") ;
+                localStorage.setItem(KEYS.expires, String(exp)) ;
+            }
         }
         setLoading(false) ;
     }, []);
+
+    useEffect(() => {
+        if (!expiresAt) return;
+
+        const MAX_TIMEOUT = 2_147_483_647; 
+        const ms = expiresAt - Date.now();
+
+        if (ms <= 0) {
+            clearSession();
+            return;
+        }
+        if (ms > MAX_TIMEOUT) return; // too far out for a timer; expiry is still checked on page load
+
+        const timer = setTimeout(clearSession, ms);
+        return () => clearTimeout(timer);
+        }, [expiresAt]);
 
     const login = (userData: User, userToken: string) => {
         setUser(userData) ;
