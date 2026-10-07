@@ -1,0 +1,49 @@
+/* MyCalendar.css */
+.my-calendar {
+  width: 100%;
+  max-width: 400px;
+  border: none;
+  border-radius: 12px;
+  font-family: Calibri ;
+  color: #cdd6f4 ;
+}
+
+/* Month/year header buttons and arrows */
+.my-calendar .react-calendar__navigation button {
+  font-size: 1rem;
+  background: none;
+  color: #cdd6f4 ;
+}
+
+/* Day tiles */
+.my-calendar .react-calendar__tile {
+  padding: 12px 6px;
+  border-radius: 10px;
+  background: #f9e2af ;
+  color: #1e1e2e ;
+}
+
+.my-calendar .react-calendar__tile:hover {
+  background: #89dceb ;
+}
+
+/* Today */
+.my-calendar .react-calendar__tile--now {
+  background: #a6e3a1;
+}
+
+/* Selected day */
+.my-calendar .react-calendar__tile--active {
+  background: #74c7ec;
+  color: #181825 ;
+}
+
+/* Days from neighboring months */
+.my-calendar .react-calendar__month-view__days__day--neighboringMonth {
+  color: #585b70;
+}
+
+/* Weekends */
+.my-calendar .react-calendar__month-view__days__day--weekend {
+  background: #f38ba8;
+}

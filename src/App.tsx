@@ -5,6 +5,7 @@ const Index = lazy(() => import("./pages/index")) ;
 const Dashboard = lazy(() => import("./pages/dashboard")) ;
 const Login = lazy(() => import("./pages/login")) ;
 const Signup = lazy(() => import("./pages/signup")) ;
+const Calendar = lazy(() => import("./pages/calendar")) ;
 
 function App() {
     return(
@@ -24,6 +25,7 @@ function App() {
 
                     <Route element={<ProtectedRoute />}>
                         <Route path="/dashboard" element={<Dashboard />}></Route>
+                        <Route path="/calendar" element={<Calendar />}></Route>
                     </Route>
                 </Routes>
             </Suspense>
