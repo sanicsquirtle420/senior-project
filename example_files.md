@@ -33,3 +33,9 @@ services:
     ports:
       - 8080:8080
 ```
+
+## .env.development.local
+```
+VITE_DEV_AUTOLOGIN=true
+VITE_DEV_SESSION_EXPIRES=2026-12-31T23:59:59-06:00
+```

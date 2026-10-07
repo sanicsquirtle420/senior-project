@@ -1,0 +1,52 @@
+ul {
+    display: flex ;
+    justify-content: flex-start ;
+    position: -webkit-sticky ; /* Safari */
+    position: sticky ;
+    list-style-type: none ;
+    color: #ffffff ;
+    background-color: #45404f ;
+    overflow: auto ;
+    white-space: nowrap;
+}
+
+li {
+    font-family: "Open Sans" ;
+    color: white ;
+    padding-right: 10px ;
+}
+
+li#aq a:hover {
+    background-color: #418488 ;
+    color: #ffffff ;
+}
+li#ju a:hover {
+    background-color: #4a4188 ;
+    color: #ffffff ;
+}
+li#yo a:hover {
+    background-color: #418848 ;
+    color: #ffffff ;
+}
+
+.nav-links li a {
+    color: #ffffff ;
+}
+
+.nav-links a {
+    display: flex ;
+    justify-content: flex-start ;
+    text-align: center ;
+    padding: 15px ;
+    text-decoration: none ;
+    transition: background-color 0.2s ease ;
+}
+
+.nav-links a:hover {
+    background-color: #b69ddd;
+    color: #000000 ;
+}
+
+.nav-links p {
+    text-align: center ;
+}
