@@ -95,3 +95,53 @@ def verify_login(request: LoginRequest):
     finally:
         cursor.close()
         conn.close()
+
+class NewEventRequest(BaseModel):
+    user_id: str
+    title: str
+    desc: str
+    start_time: str
+    end_time: str
+    visibility: str
+
+@api.post("/new_event", status_code=201)
+def signup(request: NewEventRequest):
+    u_id = int(request.user_id)
+    ti = request.title 
+    de = request.desc
+    st = request.start_time
+    en = request.end_time
+    vi = request.visibility
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("INSERT INTO events (owner_id, title, description, start_time, end_time, visibility) VALUES(%d, %s, %s, %s, %s, %s)", (u_id, ti, de, st, en, vi))
+        conn.commit()
+        return {"message": "New event added."}
+    except Exception as e:
+        print(f"Error adding user {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+    finally:
+        cursor.close()
+        conn.close()
+
+@api.get("/get_events")
+def get_events(user_id: int, start: str, end: str):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("SELECT title, description, start_time, end_time, visibility, created_at FROM events WHERE owner_id = %s AND start_time >= %s and end_time < %s ORDER BY start_time", (user_id, start, end))
+        rows = cursor.fetchall()
+
+        for r in rows:
+            r["start_time"] = r["start_time"].isoformat() + "Z"
+            r["end_time"] = r["end_time"].isoformat() + "Z"
+        return rows
+    except Exception as e:
+        print(f"Error fetching events: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+    finally:
+        cursor.close()
+        conn.close()

@@ -37,6 +37,10 @@ p , table{
 	color: #ffffff ;
 }
 
+table {
+	width: 100% ;
+}
+
 p.italics {
 	font-family: "Open Sans" ;
 	font-style: italic ;
@@ -47,18 +51,15 @@ label {
 	font-family: "Open Sans" ;
 	color: #ffffff ;
 	padding-right: 10px ;
+	white-space: nowrap ;
 }
 
-input {
+input, select {
 	width: 50% ;
 	padding: 5px ;
-	align-content: center ;
+	box-sizing: border-box ;
+	font-family: "Open Sans"
 }
-
-input::placeholder {
-	font-family: "Open Sans" ;
-}
-
 button {
 	background-color: #514a5d ;
 	color: #ffffff ;
@@ -73,11 +74,31 @@ button:hover {
 	color: #000000 ;
 }
 
-.form-row {
+form {
 	display: grid ;
-	grid-template-columns: 80px 1fr ;
+	grid-template-columns: max-content 1fr ;
+	row-gap: 12px ;
 	align-items: center ;
-	margin-bottom: 12px ;
+}
+
+form.aligned-form {
+	display: grid ;
+	grid-template-columns: max-content 1fr ;
+	row-gap: 12px ;
+	align-items: center ;
+}
+
+form.aligned-form .form-row {
+	display: content ;
+}
+
+form.aligned-form > h1 {
+	grid-column: 1 / -1 ;
+	margin-bottom: 16px ;
+}
+
+.form-row {
+	display: contents ;
 }
 
 a {

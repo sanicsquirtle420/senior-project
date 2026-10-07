@@ -42,7 +42,7 @@ const Login = () => {
     } ;
 
     return (
-        <form onSubmit={handleLogin}>
+        <form className="aligned-form" onSubmit={handleLogin}>
             <h1>Login</h1>
             {error && <p style={{color: "#f38ba8"}}>{error}</p>}
 
@@ -68,11 +68,11 @@ const Login = () => {
                     required
                 />
             </div>
-            <button type="submit" disabled={loading}>
+            <button className="" type="submit" disabled={loading}>
                 {loading ? "Logging in...": "Login"}
             </button>
 
-            <p>Don't have an account? <Link to="/signup">Sign Up</Link> | Return to <Link to="/">home</Link>.</p>
+            <br /><p>Don't have an account? <Link to="/signup">Sign Up</Link> | Return to <Link to="/">home</Link>.</p>
         </form>
     ) ;
 } ;

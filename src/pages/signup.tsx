@@ -27,7 +27,7 @@ const Signup = () => {
 
             if(!response.ok) {
                 const errData = await response.json() ;
-                throw new Error(errData.detail || "Login failed") ;
+                throw new Error(errData.detail || "Sign up failed") ;
             }
              
             navigate("/login") ;
