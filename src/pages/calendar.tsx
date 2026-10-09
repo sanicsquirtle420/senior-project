@@ -1,9 +1,29 @@
-import { useSearchParams } from "react-router-dom" ;
+import { useSearchParams, Link } from "react-router-dom" ;
 import { useState, useEffect } from "react" ;
 import Navbar from "../utils/navbar" ;
 
 function toDB(date) {
     return date.toISOString().slice(0, 19).replace("T", " ") ;
+}
+
+function yesterday(dateParam: string): string {
+    const [ye, mo, da] = dateParam.split("-").map(Number) ;
+    const date = new Date(ye, mo - 1, da) ;
+    date.setDate(date.getDate() - 1) ;
+    const y = date.getFullYear() ;
+    const m = String(date.getMonth() + 1).padStart(2, "0") ;
+    const d = String(date.getDate()).padStart(2, "0") ;
+    return String(y) + "-" + String(m) + "-" + String(d) ;
+}
+
+function tomorrow(dateParam: string): string {
+    const [ye, mo, da] = dateParam.split("-").map(Number) ;
+    const date = new Date(ye, mo - 1, da) ;
+    date.setDate(date.getDate() + 1) ;
+    const y = date.getFullYear() ;
+    const m = String(date.getMonth() + 1).padStart(2, "0") ;
+    const d = String(date.getDate()).padStart(2, "0") ;
+    return String(y) + "-" + String(m) + "-" + String(d) ;
 }
 
 const Calendar = () => {
@@ -63,7 +83,7 @@ const Calendar = () => {
             {error && <p style={{ color: "#f38ba8" }}>{error}</p>}
             {events.length === 0 ? (!error && <p>No events for this day.</p>) :
             ( <table>
-                <tr><td>Event Name</td><td>Description</td><td>Start Time</td><td>End Time</td><td>Visibility</td></tr>
+                <thead><td>Event Name</td><td>Description</td><td>Start Time</td><td>End Time</td><td>Visibility</td></thead>
                 {events.map((ev) => (
                     <tr key={ev.event_id}>
                         <td>{ev.title}</td>
@@ -80,6 +100,7 @@ const Calendar = () => {
                     </tr>
                 ))}
             </table> )}
+            <p>Go <Link to={"/calendar?date=" + yesterday(dateParam)}>back</Link> a day. | Go <Link to={"/calendar?date=" + tomorrow(dateParam)}>forward</Link> a day.</p>
         </div>
     ) ;
 } ;
