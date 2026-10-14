@@ -34,7 +34,8 @@ const Dashboard = () => {
 
     try {
         const rawData = localStorage.getItem("session_user") ;
-        const userID = rawData ? JSON.parse(rawData).id : null ;
+        const id = rawData ? JSON.parse(rawData).id : null ;
+        const userID = id != null ? String(id) : null ;
 
         if (!userID) {
             throw new Error("You need to be logged in to add an event.") ;

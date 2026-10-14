@@ -18,7 +18,7 @@ CREATE TABLE friendship (
     user2ID int NOT NULL,
     status enum ("pending", "accepted", "declined") DEFAULT "pending",
     request_date datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    response_date datetime
+    response_date datetime,
     FOREIGN KEY (user1ID) REFERENCES users(userID) ON DELETE CASCADE,
     FOREIGN KEY (user2ID) REFERENCES users(userID) ON DELETE CASCADE
 ) ;
@@ -50,4 +50,4 @@ CREATE TABLE event_shares (
     PRIMARY KEY (eventID, friendID),
     FOREIGN KEY (eventID) REFERENCES events(eventID) ON DELETE CASCADE,
     FOREIGN KEY (friendID) REFERENCES friendship(friendshipID) ON DELETE CASCADE
-) ;
+);

@@ -1,9 +1,9 @@
 from users import create_account
 
 def main():
-    name = "Andrew"
-    username = "justanothaguy"
-    email = "andrew@sanicsquirtle.com"
+    name = "Diego"
+    username = "raccoon"
+    email = "druiz@gmail.com"
     password = "abc123"
 
     create_account(name, username, email, password)

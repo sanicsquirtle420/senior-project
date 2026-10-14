@@ -4,11 +4,23 @@ import Navbar from "../utils/navbar_index" ;
 const Index = () => {
     return(
         <div>
-            <h1>PlanPal</h1>
+            <center><h1>PlanPal</h1></center>
             <Navbar />
-            <p>Welcome to the index page for PlanPal! Go to the <Link to="/dashboard">dashboard</Link>.</p>
+            <h2>Welcome!</h2>
+            <p>
+                PlanPal is an application that allows users to see their friend's calendar to make
+                it easier to plan events with your friends. Users will be able to add their events
+                from their dashboard and select their privacy setting for each event. By default,
+                your friends will be able to see the times you busy, but unless you change the privacy
+                setting they will not be able to see details like the title or description.
+            </p>
             <img className="screenshot" src="https://media1.tenor.com/m/eCS_N1ZYbIsAAAAd/the-fragrant-flower-blooms-with-dignity-kaoruko-waguri.gif"
                 alt="Karouko Waguri gif"></img>
+            <p>
+                The website is hosted on <a href="https://https://www.cloudflare.com/products/pages/">Cloudflare 
+                pages</a> and the database is stored on a server hosted by the <a href="https://turing.cs.olemiss.edu">University of Misssissippi</a>.<br />
+                Go to the <Link to="/dashboard">dashboard</Link>.
+            </p>
         </div>
     ) ;
 } ;

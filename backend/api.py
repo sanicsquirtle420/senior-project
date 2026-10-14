@@ -108,7 +108,7 @@ class NewEventRequest(BaseModel):
 def signup(request: NewEventRequest):
     u_id = int(request.user_id)
     ti = request.title 
-    de = request.desc
+    de = request.desc.strip() or None
     st = request.start_time
     en = request.end_time
     vi = request.visibility
@@ -116,7 +116,7 @@ def signup(request: NewEventRequest):
     cursor = conn.cursor()
 
     try:
-        cursor.execute("INSERT INTO events (owner_id, title, description, start_time, end_time, visibility) VALUES(%d, %s, %s, %s, %s, %s)", (u_id, ti, de, st, en, vi))
+        cursor.execute("INSERT INTO events (ownerID, title, description, start_time, end_time, visibility) VALUES(?, ?, ?, ?, ?, ?)", (u_id, ti, de, st, en, vi))
         conn.commit()
         return {"message": "New event added."}
     except Exception as e:
@@ -132,7 +132,7 @@ def get_events(user_id: int, start: str, end: str):
     cursor = conn.cursor(dictionary=True)
 
     try:
-        cursor.execute("SELECT title, description, start_time, end_time, visibility, created_at FROM events WHERE owner_id = %s AND start_time >= %s and end_time < %s ORDER BY start_time", (user_id, start, end))
+        cursor.execute("SELECT title, description, start_time, end_time, visibility, created_at FROM events WHERE ownerID = %s AND start_time >= %s and end_time < %s ORDER BY start_time", (user_id, start, end))
         rows = cursor.fetchall()
 
         for r in rows:
