@@ -44,7 +44,7 @@ const Dashboard = () => {
         const startUTC = toDB(start_time) ;
         const endUTC = toDB(end_time) ;
 
-        const response = await fetch("http://localhost:8000/new_event", {
+        const response = await fetch("https://api.raccoon2891.com/new_event", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ user_id: userID, title, desc, start_time: startUTC, end_time: endUTC, visibility }),

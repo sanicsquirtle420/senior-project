@@ -17,8 +17,8 @@ const Index = () => {
             <img className="screenshot" src="https://media1.tenor.com/m/eCS_N1ZYbIsAAAAd/the-fragrant-flower-blooms-with-dignity-kaoruko-waguri.gif"
                 alt="Karouko Waguri gif"></img>
             <p>
-                The website is hosted on <a href="https://https://www.cloudflare.com/products/pages/">Cloudflare 
-                pages</a> and the database is stored on a server hosted by the <a href="https://turing.cs.olemiss.edu">University of Misssissippi</a>.<br />
+                This senior project is being hosted on <a href="https://www.cloudflare.com/products/pages/">Cloudflare pages</a> (website) 
+                , <a href="https://render.com">Render</a> (FastAPI), and <a href="https://layerbase.com">Layerbase</a> (database). <br />
                 Go to the <Link to="/dashboard">dashboard</Link>.
             </p>
         </div>
