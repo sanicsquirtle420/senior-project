@@ -52,7 +52,7 @@ const Calendar = () => {
                     end: toDB(dayEnd),
                 }) ;
 
-                const response = await fetch(`https://api.raccoon2891.com/get_events?${params}`) ;
+                const response = await fetch(`http://localhost:8000/get_events?${params}`) ;
                 if (!response.ok) throw new Error("Failed to load events.") ;
 
                 const data = await response.json() ;

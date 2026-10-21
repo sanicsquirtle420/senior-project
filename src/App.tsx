@@ -6,6 +6,7 @@ const Dashboard = lazy(() => import("./pages/dashboard")) ;
 const Login = lazy(() => import("./pages/login")) ;
 const Signup = lazy(() => import("./pages/signup")) ;
 const Calendar = lazy(() => import("./pages/calendar")) ;
+const Friends = lazy(() => import("./pages/friends")) ;
 
 function App() {
     return(
@@ -26,6 +27,7 @@ function App() {
                     <Route element={<ProtectedRoute />}>
                         <Route path="/dashboard" element={<Dashboard />}></Route>
                         <Route path="/calendar" element={<Calendar />}></Route>
+                        <Route path="/friends" element={<Friends />}></Route>
                     </Route>
                 </Routes>
             </Suspense>
