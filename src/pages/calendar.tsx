@@ -52,7 +52,8 @@ const Calendar = () => {
                     end: toDB(dayEnd),
                 }) ;
 
-                const response = await fetch(`http://localhost:8000/get_events?${params}`) ;
+                const response = await fetch(`https://api.raccoon2891.com/get_events?${params}`) ;
+                
                 if (!response.ok) throw new Error("Failed to load events.") ;
 
                 const data = await response.json() ;
@@ -83,7 +84,8 @@ const Calendar = () => {
             {error && <p style={{ color: "#f38ba8" }}>{error}</p>}
             {events.length === 0 ? (!error && <p>No events for this day.</p>) :
             ( <table>
-                <thead><td>Event Name</td><td>Description</td><td>Start Time</td><td>End Time</td><td>Visibility</td></thead>
+                <thead><th>Event Name</th><th>Description</th><th>Start Time</th><th>End Time</th><th>Visibility</th></thead>
+                <tbody>
                 {events.map((ev) => (
                     <tr key={ev.event_id}>
                         <td>{ev.title}</td>
@@ -99,7 +101,7 @@ const Calendar = () => {
                         <td>{ev.visibility}</td>
                     </tr>
                 ))}
-            </table> )}
+            </tbody></table> )}
             <p>Go <Link to={"/calendar?date=" + yesterday(dateParam)}>back</Link> a day. | Go <Link to={"/calendar?date=" + tomorrow(dateParam)}>forward</Link> a day.</p>
         </div>
     ) ;

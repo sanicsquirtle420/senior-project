@@ -153,32 +153,33 @@ def get_friends(userID: int):
     cursor = conn.cursor(dictionary=True)
 
     try:
-        cursor.execute("SELECT users.name, users.username ", (user_id, start, end))
+        cursor.execute("SELECT u.userID, u.name, u.username from friendship f join users u on u.userID = case when f.user1ID = ? then f.user2ID else f.user1ID end where (f.user1ID = ? or f.user2ID = ?) and f.status = \"accepted\"", (userID, userID, userID))
         rows = cursor.fetchall()
         return rows
     except Exception as e:
-        print(f"Error fetching events: {e}")
+        print(f"Error fetching friends: {e}")
         raise HTTPException(status_code=500, detail="Internal server error.")
     finally:
         cursor.close()
         conn.close()
 
 class NewFriendRequest(BaseModel):
-    user1_id: str
+    user1ID: str
     user2: str
 
 @api.post("/new_friends")
 def new_friends(request: NewFriendRequest):
-    u1_id = int(request.user1_id)
+    u1_id = int(request.user1ID)
     u2_na = request.user2
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT userID from users WHERE username = ?", (u2_na,))
+        cursor.execute("SELECT userID from users WHERE username= %s", (u2_na,))
         row = cursor.fetchone()
-        u2_id = row["userID"]
+        print(row)
+        u2_id = row[0]
         if row == None:
             raise HTTPException(status_code=401, message="No user found with that username.")
 

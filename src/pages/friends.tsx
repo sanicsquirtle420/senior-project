@@ -1,10 +1,12 @@
+import { useSearchParams } from "react-router-dom" ;
 import { useAuth } from "../utils/AuthContext" ;
 import Navbar from "../utils/navbar" ;
-import { useState } from "react" ;
+import { useEffect, useState } from "react" ;
 
 const Friends = () => {
     const [ loading, setLoading ] = useState(false) ;
     const [ error, setError ] = useState("") ;
+    const [ friendslist, setFriendslist ] = useState("") ;
     const [ frienduser, setFrienduser ] = useState("") ;
     const { user } = useAuth() ;
 
@@ -22,7 +24,7 @@ const Friends = () => {
                 throw new Error("You need to be logged in to send a friend request.") ;
             }
 
-            const response = await fetch("http://localhost:8000/new_friend", {
+            const response = await fetch("https://api.raccoon2891.com/new_friends", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user1ID: userID, user2: frienduser }),
@@ -40,12 +42,50 @@ const Friends = () => {
             }
     } ;
 
+    useEffect(() => {
+        const loadFriends = async () => {
+            setLoading(true) ;
+            try {
+                const rawData = localStorage.getItem("session_user") ;
+                const userID = rawData ? JSON.parse(rawData).id : null ;
+                if (!userID) throw new Error("You need to be logged in.") ;
+
+                const params = new URLSearchParams({
+                    userID: userID,
+                }) ;
+
+                const response = await fetch(`https://api.raccoon2891.com/get_friends?${params}`)
+                if (!response.ok) throw new Error("Failed to load friends.") ;
+                const data = await response.json() ;
+                setFriendslist(data) ;
+            } catch(err) {
+                setError(err.message) ;
+            } finally {
+                setLoading(false) ;
+            }
+        } ;
+        loadFriends() ;
+    }, []) ;
+    
+
     return (
         <div>
             <h1>PlanPal: Friends</h1>
             <Navbar />
             <h2>{user?.name}'s Friend List</h2>
-            <p>Sample accepted friends.</p>
+            { loading ? (<p>Loading friends...</p>) : error ? (<p>{error}</p>) : friendslist.length === 0 ? (!error && <p>You have no friends.</p>) :
+            ( <table>
+                <thead><th>Name</th><th>Username</th></thead>
+                <tbody>
+                {friendslist.map((fr) => (
+                    <tr key={fr.userID}>
+                        <td>{fr.name}</td>
+                        <td>{fr.username}</td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>)
+            }
 
             <h2>Send a Friend Request</h2>
             <form onSubmit={friendRequest}>

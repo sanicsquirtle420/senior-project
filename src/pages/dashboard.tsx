@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom" ;
 import { useAuth } from "../utils/AuthContext" ;
 import Calendar from "react-calendar" ;
 import Navbar from "../utils/navbar" ;
-import { useState } from "react" ;
+import { useEffect, useState } from "react" ;
 import "../calendar.css" ;
 
 function toDateString(date) {
@@ -24,6 +24,7 @@ const Dashboard = () => {
     const [ visibility, setVisibility ] = useState("private") ;
     const [ error, setError ] = useState("") ;
     const [ loading, setLoading ] = useState(false) ;
+    const [ friendslist, setFriendslist ] = useState("") ;
     const { user } = useAuth() ;
     const navigate = useNavigate() ;
 
@@ -67,12 +68,37 @@ const Dashboard = () => {
     }
 } ;
 
+useEffect(() => {
+        const loadFriends = async () => {
+            setLoading(true) ;
+            try {
+                const rawData = localStorage.getItem("session_user") ;
+                const userID = rawData ? JSON.parse(rawData).id : null ;
+                if (!userID) throw new Error("You need to be logged in.") ;
+
+                const params = new URLSearchParams({
+                    userID: userID,
+                }) ;
+
+                const response = await fetch(`https://api.raccoon2891.com/get_friends?${params}`)
+                if (!response.ok) throw new Error("Failed to load friends.") ;
+                const data = await response.json() ;
+                setFriendslist(data) ;
+            } catch(err) {
+                setError(err.message) ;
+            } finally {
+                setLoading(false) ;
+            }
+        } ;
+        loadFriends() ;
+    }, []) ;
+
     return(
         <div>
             <h1>Welcome to PlanPal, {user?.name}</h1>
             <Navbar />
             <h2>Calendar</h2>
-            <p>Here is your calendar as of now:</p>
+            <p>Click the day on the calendar to see your events for that day.</p>
             <Calendar 
                 className="my-calendar"
                 calendarType="gregory"
@@ -143,7 +169,19 @@ const Dashboard = () => {
             </button>
             </form>
             <h2>Friend's List</h2>
-            <p>Sample friends list</p>
+            { loading ? (<p>Loading friends...</p>) : error ? (<p>{error}</p>) : friendslist.length === 0 ? (!error && <p>You have no friends.</p>) :
+            ( <table>
+                <thead><th>Name</th><th>Username</th></thead>
+                <tbody>
+                {friendslist.map((fr) => (
+                    <tr key={fr.userID}>
+                        <td>{fr.name}</td>
+                        <td>{fr.username}</td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>)
+            }
         </div>
     ) ;
 } ;
