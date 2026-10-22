@@ -80,7 +80,7 @@ const Calendar = () => {
         <div>
             <h1>PlanPal: {formatted}</h1>
             <Navbar />
-            <h2>Events for {formatted}</h2>
+            <h2>Personal Events for {formatted}</h2>
             {error && <p style={{ color: "#f38ba8" }}>{error}</p>}
             {events.length === 0 ? (!error && <p>No events for this day.</p>) :
             ( <table>
@@ -102,6 +102,9 @@ const Calendar = () => {
                     </tr>
                 ))}
             </tbody></table> )}
+
+            <h2>Friend's Events</h2>
+            
             <p>Go <Link to={"/calendar?date=" + yesterday(dateParam)}>back</Link> a day. | Go <Link to={"/calendar?date=" + tomorrow(dateParam)}>forward</Link> a day.</p>
         </div>
     ) ;

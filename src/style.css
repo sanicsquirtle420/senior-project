@@ -74,10 +74,10 @@ button:hover {
 	color: #000000 ;
 }
 
-form {
+.original-row {
 	display: grid ;
-	grid-template-columns: max-content 1fr ;
-	row-gap: 12px ;
+	grid-template-columns: 80px 1fr ;
+	margin-bottom: 12px ;
 	align-items: center ;
 }
 
@@ -88,16 +88,12 @@ form.aligned-form {
 	align-items: center ;
 }
 
-form.aligned-form .form-row {
-	display: content ;
-}
-
 form.aligned-form > h1 {
 	grid-column: 1 / -1 ;
 	margin-bottom: 16px ;
 }
 
-.form-row {
+form.aligned-form .form-row {
 	display: contents ;
 }
 

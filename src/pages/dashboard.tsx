@@ -97,6 +97,7 @@ useEffect(() => {
         <div>
             <h1>Welcome to PlanPal, {user?.name}</h1>
             <Navbar />
+            { error && (<p style={{color: "#f38ba8"}}>{error}</p>) }
             <h2>Calendar</h2>
             <p>Click the day on the calendar to see your events for that day.</p>
             <Calendar 
@@ -106,9 +107,8 @@ useEffect(() => {
                 onClickDay={(date) => navigate("/calendar?date=" + toDateString(date))}/>
 
             <h3>Add an Event</h3>
-            {error && <p style={{color: "#f38ba8"}}>{error}</p>}
             <p>Fields with * are required.</p>
-            <form onSubmit={newEvent}>
+            <form onSubmit={newEvent} className="aligned-form">
                 <div className="form-row">
                 <label htmlFor="title">Title*</label>
                 <input 
@@ -168,7 +168,7 @@ useEffect(() => {
                 {loading ? "Adding Event...": "Add Event"}
             </button>
             </form>
-            <h2>Friend's List</h2>
+            <h2>Friends List</h2>
             { loading ? (<p>Loading friends...</p>) : error ? (<p>{error}</p>) : friendslist.length === 0 ? (!error && <p>You have no friends.</p>) :
             ( <table>
                 <thead><th>Name</th><th>Username</th></thead>

@@ -193,3 +193,63 @@ def new_friends(request: NewFriendRequest):
     finally:
         cursor.close()
         conn.close()
+
+@api.get("/get_pending")
+def get_pending(userID: int):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("SELECT u.userID, u.name, u.username from friendship f join users u on u.userID = case when f.user1ID = ? then f.user2ID else f.user1ID end where (f.user1ID = ? or f.user2ID = ?) and f.status = \"pending\"", (userID, userID, userID))
+        rows = cursor.fetchall()
+        return rows
+    except Exception as e:
+        print(f"Error fetching pending friend requests: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+    finally:
+        cursor.close()
+        conn.close()
+
+class FriendshipRequest(BaseModel):
+    user1ID: int
+    user2ID: int
+
+@api.post("/accept_friend")
+def accept_friend(request: FriendshipRequest):
+    u1 = request.user1ID
+    u2 = request.user2ID
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("UPDATE friendship SET status=\"accepted\", response_date=CURRENT_TIMESTAMP() WHERE friendshipID = ( SELECT friendshipID FROM ( SELECT friendshipID FROM friendship WHERE ((user1ID = ? AND user2ID = ?) OR (user1ID = ? AND user2ID = ?)) AND status = \"pending\" ORDER BY friendshipID DESC LIMIT 1) AS latest_request)", (u1, u2, u2, u1))
+        
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Friend request does not exist or is already processed.")
+        conn.commit()
+    except Exception as e:
+        print(f"Error accepting friend request: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+    finally:
+        cursor.close()
+        conn.close()
+
+@api.post("/decline_friend")
+def decline_friend(request: FriendshipRequest):
+    u1 = request.user1ID
+    u2 = request.user2ID
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("UPDATE friendship SET status=\"declined\", response_date=CURRENT_TIMESTAMP() WHERE friendshipID = ( SELECT friendshipID FROM ( SELECT friendshipID FROM friendship WHERE ((user1ID = ? AND user2ID = ?) OR (user1ID = ? AND user2ID = ?)) AND status = \"pending\" ORDER BY friendshipID DESC LIMIT 1) AS latest_request)", (u1, u2, u2, u1))
+        
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Friend request does not exist or is already processed.")
+        conn.commit()
+    except Exception as e:
+        print(f"Error accepting friend request: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+    finally:
+        cursor.close()
+        conn.close()

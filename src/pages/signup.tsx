@@ -43,7 +43,7 @@ const Signup = () => {
             <h1>Signup</h1>
             {error && <p style={{color: "#f38ba8"}}>{error}</p>}
 
-            <div className="form-row">
+            <div className="original-row">
                 <label htmlFor="name">Name</label>
                 <input 
                     id="name"
@@ -55,7 +55,7 @@ const Signup = () => {
                     required 
                 />
             </div>
-            <div className="form-row">
+            <div className="original-row">
                 <label htmlFor="username">Username</label>
                 <input 
                     id="username"
@@ -67,7 +67,7 @@ const Signup = () => {
                     required 
                 />
             </div>
-            <div className="form-row">
+            <div className="original-row">
                 <label htmlFor="email">Email</label>
                 <input 
                     id="email"
@@ -79,7 +79,7 @@ const Signup = () => {
                     required 
                 />
             </div>
-            <div className="form-row">
+            <div className="original-row">
                 <label htmlFor="password">Password</label>
                 <input 
                     id="password"
