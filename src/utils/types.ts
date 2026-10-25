@@ -11,3 +11,10 @@ export interface LoginResponse extends User {
 export interface SignupResponse extends User {
     password: string ;
 }
+
+export interface Friend {
+    userID: number;
+    name: string;
+    username: string;
+    friendshipID: number;
+}

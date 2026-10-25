@@ -4,6 +4,7 @@ from database import get_connection
 from users import hash_password
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from typing import List
 import datetime
 import bcrypt
 import jwt
@@ -11,6 +12,7 @@ import os
 
 origins = [
     "https://juno.raccoon2891.com",
+    "https://kiriko.raccoon2891.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173"
 ]
@@ -133,7 +135,7 @@ def get_events(user_id: int, start: str, end: str):
     cursor = conn.cursor(dictionary=True)
 
     try:
-        cursor.execute("SELECT title, description, start_time, end_time, visibility, created_at FROM events WHERE ownerID = %s AND start_time >= %s and end_time < %s ORDER BY start_time", (user_id, start, end))
+        cursor.execute("SELECT eventID, title, description, start_time, end_time, visibility, created_at FROM events WHERE ownerID = %s AND start_time >= %s and end_time < %s ORDER BY start_time", (user_id, start, end))
         rows = cursor.fetchall()
 
         for r in rows:
@@ -153,7 +155,7 @@ def get_friends(userID: int):
     cursor = conn.cursor(dictionary=True)
 
     try:
-        cursor.execute("SELECT u.userID, u.name, u.username from friendship f join users u on u.userID = case when f.user1ID = ? then f.user2ID else f.user1ID end where (f.user1ID = ? or f.user2ID = ?) and f.status = \"accepted\"", (userID, userID, userID))
+        cursor.execute("SELECT f.friendshipID, u.userID, u.name, u.username from friendship f join users u on u.userID = case when f.user1ID = ? then f.user2ID else f.user1ID end where (f.user1ID = ? or f.user2ID = ?) and f.status = \"accepted\"", (userID, userID, userID))
         rows = cursor.fetchall()
         return rows
     except Exception as e:
@@ -200,7 +202,7 @@ def get_pending(userID: int):
     cursor = conn.cursor(dictionary=True)
 
     try:
-        cursor.execute("SELECT u.userID, u.name, u.username from friendship f join users u on u.userID = case when f.user1ID = ? then f.user2ID else f.user1ID end where (f.user1ID = ? or f.user2ID = ?) and f.status = \"pending\"", (userID, userID, userID))
+        cursor.execute("SELECT u.userID, u.name, u.username FROM friendship f JOIN users u ON u.userID = f.user1ID WHERE f.user2ID = ? AND f.status = \"pending\"", (userID,))
         rows = cursor.fetchall()
         return rows
     except Exception as e:
@@ -222,14 +224,14 @@ def accept_friend(request: FriendshipRequest):
     cursor = conn.cursor(dictionary=True)
     
     try:
-        cursor.execute("UPDATE friendship SET status=\"accepted\", response_date=CURRENT_TIMESTAMP() WHERE friendshipID = ( SELECT friendshipID FROM ( SELECT friendshipID FROM friendship WHERE ((user1ID = ? AND user2ID = ?) OR (user1ID = ? AND user2ID = ?)) AND status = \"pending\" ORDER BY friendshipID DESC LIMIT 1) AS latest_request)", (u1, u2, u2, u1))
+        cursor.execute("UPDATE friendship SET status=\"accepted\", response_date=UTC_TIMESTAMP() WHERE friendshipID = ( SELECT friendshipID FROM ( SELECT friendshipID FROM friendship WHERE ((user1ID = ? AND user2ID = ?) OR (user1ID = ? AND user2ID = ?)) AND status = \"pending\" ORDER BY friendshipID DESC LIMIT 1) AS latest_request)", (u1, u2, u2, u1))
         
         if cursor.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Friend request does not exist or is already processed.")
+            raise HTTPException(status_code=500, detail="Friend request does not exist or is already processed.")
         conn.commit()
     except Exception as e:
         print(f"Error accepting friend request: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error.")
+        raise HTTPException(status_code=500, detail=f"Error {e}")
     finally:
         cursor.close()
         conn.close()
@@ -242,14 +244,131 @@ def decline_friend(request: FriendshipRequest):
     cursor = conn.cursor(dictionary=True)
     
     try:
-        cursor.execute("UPDATE friendship SET status=\"declined\", response_date=CURRENT_TIMESTAMP() WHERE friendshipID = ( SELECT friendshipID FROM ( SELECT friendshipID FROM friendship WHERE ((user1ID = ? AND user2ID = ?) OR (user1ID = ? AND user2ID = ?)) AND status = \"pending\" ORDER BY friendshipID DESC LIMIT 1) AS latest_request)", (u1, u2, u2, u1))
+        cursor.execute("UPDATE friendship SET status=\"declined\", response_date=UTC_TIMESTAMP() WHERE friendshipID = ( SELECT friendshipID FROM ( SELECT friendshipID FROM friendship WHERE ((user1ID = ? AND user2ID = ?) OR (user1ID = ? AND user2ID = ?)) AND status = \"pending\" ORDER BY friendshipID DESC LIMIT 1) AS latest_request)", (u1, u2, u2, u1))
         
         if cursor.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Friend request does not exist or is already processed.")
+            raise HTTPException(status_code=500, detail="Friend request does not exist or is already processed.")
         conn.commit()
     except Exception as e:
         print(f"Error accepting friend request: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error.")
+        raise HTTPException(status_code=500, detail=f"Error {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+@api.post("/remove_friend")
+def remove_friend(request: FriendshipRequest):
+    u1 = request.user1ID
+    u2 = request.user2ID
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("UPDATE friendship SET status=\"removed\", response_date=UTC_TIMESTAMP() WHERE friendshipID = ( SELECT friendshipID FROM ( SELECT friendshipID FROM friendship WHERE ((user1ID = ? AND user2ID = ?) OR (user1ID = ? AND user2ID = ?)) AND status = \"accepted\" ORDER BY friendshipID DESC LIMIT 1) AS latest_request)", (u1, u2, u2, u1))
+        
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=500, detail="Friend request does not exist or is already processed.")
+        conn.commit()
+    except Exception as e:
+        print(f"Error accepting friend request: {e}")
+        raise HTTPException(status_code=500, detail=f"Error {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+@api.get("/friend_events")
+def friend_events(userID: str, friendID: str, start: str, end: str):
+    u_id = int(userID)
+    f_id = int(friendID)
+    
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+        SELECT
+    e.eventID,
+    e.ownerID AS friendID,
+    u.name AS friendName,
+    u.username AS friendUsername,
+    e.start_time,
+    e.end_time,
+    CASE
+        WHEN e.visibility = 'private' THEN NULL
+        ELSE e.title
+    END AS title,
+    CASE
+        WHEN e.visibility = 'private' THEN NULL
+        ELSE e.description
+    END AS description
+FROM events e
+JOIN users u
+    ON u.userID = e.ownerID
+WHERE e.ownerID = ?
+    AND e.start_time < ?
+    AND e.end_time >= ?
+    AND (
+        e.visibility = 'public'
+
+        OR (
+            e.visibility = 'friends'
+            AND EXISTS (
+                SELECT 1
+                FROM friendship f
+                WHERE f.status = 'accepted'
+                    AND (
+                        (f.user1ID = e.ownerID AND f.user2ID = ?)
+                        OR
+                        (f.user2ID = e.ownerID AND f.user1ID = ?)
+                    )
+            )
+        )
+
+        OR (
+            e.visibility = 'private'
+            AND EXISTS (
+                SELECT 1
+                FROM event_shares es
+                JOIN friendship f
+                    ON f.friendshipID = es.friendID
+                WHERE es.eventID = e.eventID
+                    AND f.status = 'accepted'
+                    AND (
+                        (f.user1ID = e.ownerID AND f.user2ID = ?)
+                        OR
+                        (f.user2ID = e.ownerID AND f.user1ID = ?)
+                    )
+            )
+        )
+    )
+        """, (f_id, end, start, u_id, u_id, u_id, u_id))
+        rows = cursor.fetchall()
+        return rows
+    except Exception as e:
+        print(f"Error fetching friend's events: {e}")
+        raise HTTPException(status_code=500, detail=f"Error {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+class PrivateRequest(BaseModel):
+    eventID: int
+    friendshipIDs: List[int]
+
+@api.post("/share_private")
+def share_private(request: PrivateRequest):
+    eID = request.eventID
+    fIDs = request.friendshipIDs
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        for fID in fIDs:
+            cursor.execute("INSERT INTO event_shares (eventID, friendID) VALUES(?, ?)", (eID, fID))
+        conn.commit()
+    except Exception as e:
+        print(f"Error sharing event: {e}")
+        raise HTTPException(status_code=500, detail=f"Error {e}")
     finally:
         cursor.close()
         conn.close()

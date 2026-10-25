@@ -151,6 +151,35 @@ const Friends = () => {
         }
     }
 
+    const removeFriend = async (friendID: number) => {
+        setError("") ;
+        setLoading(true) ;
+
+        try {
+            const rawData = localStorage.getItem("session_user") ;
+            const id = rawData ? JSON.parse(rawData).id : null ;
+
+            if (id == null) {
+                throw new Error("You need to be logged in to decline a friend request.") ;
+            }
+
+            const response = await fetch("https://api.raccoon2891.com/remove_friend", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user1ID: id, user2ID: friendID, }),
+            }) ;
+
+            if (!response.ok) {
+                const errData = await response.json() ;
+                throw new Error(errData.detail || "Failed to remove friend.") ;
+            }
+            } catch (err) {
+                setError(err.message) ;
+            } finally {
+                setLoading(false) ;
+        }
+    }
+
     return (
         <div>
             <h1>PlanPal: Friends</h1>
@@ -159,12 +188,13 @@ const Friends = () => {
             <h2>{user?.name}'s Friends List</h2>
             { loading ? (<p>Loading friends...</p>) :  friendslist.length === 0 ? (!error && <p>You have no friends.</p>) :
             ( <table>
-                <thead><th>Name</th><th>Username</th></thead>
+                <thead><th>Name</th><th>Username</th><th></th></thead>
                 <tbody>
                 {friendslist.map((fr) => (
                     <tr key={fr.userID}>
                         <td>{fr.name}</td>
                         <td>{fr.username}</td>
+                        <td><button onClick={() =>removeFriend(fr.userID)}>Remove Friend</button></td>
                     </tr>
                 ))}
                 </tbody>
