@@ -86,17 +86,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }, [expiresAt]);
 
     const login = (userData: User, userToken: string) => {
+        const exp = Date.now() + 8 * 60 * 60 * 1000
+
         setUser(userData) ;
         setToken(userToken) ;
-        localStorage.setItem("session_user", JSON.stringify(userData)) ;
-        localStorage.setItem("session_token", userToken) ;
+        setExpiresAt(exp) ;
+
+        localStorage.setItem(KEYS.user, JSON.stringify(userData)) ;
+        localStorage.setItem(KEYS.token, userToken) ;
+        localStorage.setItem(KEYS.expires, String(exp)) ;
     } ;
 
     const logout = () => {
-        setUser(null) ;
-        setToken(null) ;
-        localStorage.removeItem("session_user") ;
-        localStorage.removeItem("session_token") ;
+        clearSession() ;
     }
 
     return (
