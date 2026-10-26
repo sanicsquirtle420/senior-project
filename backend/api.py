@@ -372,3 +372,33 @@ def share_private(request: PrivateRequest):
     finally:
         cursor.close()
         conn.close()
+
+class UpdateEventRequest(BaseModel):
+    eventID: int
+    title: str
+    description: str
+    start_time: str
+    end_time: str
+    visibility: str
+
+@api.post("/update_event")
+def update_event(request: UpdateEventRequest):
+    eID = request.eventID
+    ti = request.title
+    de = request.description
+    st = request.start_time
+    en = request.end_time
+    vi = request.visibility
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+        
+    try:
+        cursor.execute("UPDATE events SET title=?, description=?, start_time=?, end_time=?, visibility=? WHERE eventID = ?", (ti, de, st, en, vi, eID))
+        conn.commit()
+    except Exception as e:
+        print(f"Error updating event: {e}")
+        raise HTTPException(status_code=500, detail=f"Error {e}")
+    finally:
+        cursor.close()
+        conn.close()

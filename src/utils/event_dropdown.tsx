@@ -49,7 +49,7 @@ function toDateTimeLocal(value: string) {
 function EditEventForm({
   event,
   friends,
-  // onUpdateEvent,
+  onUpdateEvent,
   onShareEvent,
 }: EditEventProps) {
   const [title, setTitle] = useState(event.title ?? '');

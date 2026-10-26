@@ -6,7 +6,8 @@ import Navbar from "../utils/navbar" ;
 import { Friend } from "../utils/types" ;
 
 function toDB(date) {
-    return date.toISOString().slice(0, 19).replace("T", " ") ;
+    const dateObj = date instanceof Date ? date: new Date(date)
+    return dateObj.toISOString().slice(0, 19).replace("T", " ") ;
 }
 
 function yesterday(dateParam: string): string {
@@ -188,6 +189,51 @@ const sharePrivate = async (
         day: "numeric",
     }) ;
 
+const updateEvent = async (updatedEvent: {
+    eventID: number ;
+    title: string ;
+    description: string ;
+    start_time: string ;
+    end_time: string ;
+    visibility: string ;
+}) => {
+    setError("") ;
+    
+    try {
+        const rawData = localStorage.getItem("session_user") ;
+        const id = rawData ? JSON.parse(rawData).id : null ;
+
+        if (!id) {
+            throw new Error("You need to be logged in to add an event.") ;
+        }
+
+        const startUTC = toDB(updatedEvent.start_time) ;
+        const endUTC = toDB(updatedEvent.end_time) ;
+
+        const response = await fetch("https://api.raccoon2891.com/update_event", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                eventID: updatedEvent.eventID, 
+                title:updatedEvent.title, 
+                description: updatedEvent.description, 
+                start_time: startUTC, 
+                end_time: endUTC, 
+                visibility: updatedEvent.visibility }),
+        })
+
+        if (!response.ok) {
+            const errData = await response.json() ;
+            throw new Error(errData.detail || "Failed to update event.") ;
+        }
+
+        window.location.reload() ;
+
+    } catch(err) {
+        setError(err.message) ;
+    }
+}
+
     return (
         <div>
             <h1>PlanPal: {formatted}</h1>
@@ -265,6 +311,7 @@ const sharePrivate = async (
                                         <EditEventForm
                                             event={ev}
                                             friends={friendsList}
+                                            onUpdateEvent={updateEvent}
                                             onShareEvent={sharePrivate}
                                         />
                                     </div>
