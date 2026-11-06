@@ -32,7 +32,7 @@ const Login = () => {
             const data = (await response.json()) as LoginResponse ;
             const { token, ...user} = data ;
 
-            login(user, data) ;
+            login(user, token) ;
             navigate("/dashboard") ;
         } catch (err) {
             setError(err.message) ;

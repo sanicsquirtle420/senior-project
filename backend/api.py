@@ -17,7 +17,15 @@ origins = [
     "http://127.0.0.1:5173"
 ]
 
-api = FastAPI()
+api = FastAPI(
+    title="PlanPal API",
+    description="This is the API that makes calls from the React frontend to the MariaDB database.",
+    version="2026-11-05",
+    contact={
+        "name": "Diego R. (SanicSquirtle428)",
+        "url": "https://github.com/sanicsquirtle420"
+    }
+)
 
 api.add_middleware(
     CORSMiddleware,
@@ -31,8 +39,15 @@ load_dotenv()
 SECRET_KEY = os.getenv("SEC_KEY")
 ALGORITHM = "HS256"
 
-@api.get("/")
+@api.get("/", tags=["Testing"])
 def root_msg():
+    """
+    # Root Message
+    Just a quick message to make sure the API is up and running.
+
+
+    ![Aira Shiratori from DanDaDan](https://media1.tenor.com/m/4Keu8y07XFQAAAAd/dandadan-aira-shiratori-knocking-her-head-onto-a-bench-over-again-and-again.gif)
+    """
     return {"message": "Hello from root! :D"}
 
 class SignupRequest(BaseModel):
@@ -41,7 +56,7 @@ class SignupRequest(BaseModel):
     email: str
     password: str
 
-@api.post("/signup", status_code=201)
+@api.post("/signup", status_code=201, tags=["Users"])
 def signup(request: SignupRequest):
     na = request.name 
     us = request.username
@@ -66,7 +81,7 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
-@api.post("/login")
+@api.post("/login", tags=["Users"])
 def verify_login(request: LoginRequest):
     email = request.email
     passwd = request.password.encode("utf-8")
@@ -107,7 +122,7 @@ class NewEventRequest(BaseModel):
     end_time: str
     visibility: str
 
-@api.post("/new_event", status_code=201)
+@api.post("/new_event", status_code=201, tags=["Events"])
 def signup(request: NewEventRequest):
     u_id = int(request.user_id)
     ti = request.title 
@@ -129,7 +144,7 @@ def signup(request: NewEventRequest):
         cursor.close()
         conn.close()
 
-@api.get("/get_events")
+@api.get("/get_events", tags=["Events"])
 def get_events(user_id: int, start: str, end: str):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
@@ -149,7 +164,7 @@ def get_events(user_id: int, start: str, end: str):
         cursor.close()
         conn.close()
 
-@api.get("/get_friends")
+@api.get("/get_friends", tags=["Friends"])
 def get_friends(userID: int):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
@@ -169,7 +184,7 @@ class NewFriendRequest(BaseModel):
     user1ID: str
     user2: str
 
-@api.post("/new_friends")
+@api.post("/new_friends", tags=["Friends"])
 def new_friends(request: NewFriendRequest):
     u1_id = int(request.user1ID)
     u2_na = request.user2
@@ -196,7 +211,7 @@ def new_friends(request: NewFriendRequest):
         cursor.close()
         conn.close()
 
-@api.get("/get_pending")
+@api.get("/get_pending", tags=["Friends"])
 def get_pending(userID: int):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
@@ -216,7 +231,7 @@ class FriendshipRequest(BaseModel):
     user1ID: int
     user2ID: int
 
-@api.post("/accept_friend")
+@api.post("/accept_friend", tags=["Friends"])
 def accept_friend(request: FriendshipRequest):
     u1 = request.user1ID
     u2 = request.user2ID
@@ -236,7 +251,7 @@ def accept_friend(request: FriendshipRequest):
         cursor.close()
         conn.close()
 
-@api.post("/decline_friend")
+@api.post("/decline_friend", tags=["Friends"])
 def decline_friend(request: FriendshipRequest):
     u1 = request.user1ID
     u2 = request.user2ID
@@ -256,7 +271,7 @@ def decline_friend(request: FriendshipRequest):
         cursor.close()
         conn.close()
 
-@api.post("/remove_friend")
+@api.post("/remove_friend", tags=["Friends"])
 def remove_friend(request: FriendshipRequest):
     u1 = request.user1ID
     u2 = request.user2ID
@@ -276,7 +291,7 @@ def remove_friend(request: FriendshipRequest):
         cursor.close()
         conn.close()
 
-@api.get("/friend_events")
+@api.get("/friend_events", tags=["Events", "Friends"])
 def friend_events(userID: str, friendID: str, start: str, end: str):
     u_id = int(userID)
     f_id = int(friendID)
@@ -353,18 +368,23 @@ WHERE e.ownerID = ?
 
 class PrivateRequest(BaseModel):
     eventID: int
-    friendshipIDs: List[int]
+    addIDs: List[int]
+    removeIDs: List[int]
 
-@api.post("/share_private")
+@api.post("/share_private", tags=["Events"])
 def share_private(request: PrivateRequest):
     eID = request.eventID
-    fIDs = request.friendshipIDs
+    aIDs = request.addIDs
+    rIDs = request.removeIDs
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     
     try:
-        for fID in fIDs:
+        for fID in aIDs:
             cursor.execute("INSERT INTO event_shares (eventID, friendID) VALUES(?, ?)", (eID, fID))
+
+        for fID in rIDs:
+            cursor.execute("DELETE FROM event_shares WHERE eventID = ? AND friendID = ?", (eID, fID))
         conn.commit()
     except Exception as e:
         print(f"Error sharing event: {e}")
@@ -381,7 +401,7 @@ class UpdateEventRequest(BaseModel):
     end_time: str
     visibility: str
 
-@api.post("/update_event")
+@api.post("/update_event", tags=["Events"])
 def update_event(request: UpdateEventRequest):
     eID = request.eventID
     ti = request.title
@@ -399,6 +419,22 @@ def update_event(request: UpdateEventRequest):
     except Exception as e:
         print(f"Error updating event: {e}")
         raise HTTPException(status_code=500, detail=f"Error {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+@api.get("/get_event_shares", tags=["Events"])
+def get_event_shares(eventID: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SELECT friendID FROM event_shares WHERE eventID = ?", (eventID,))
+        rows = cursor.fetchall()
+        return [row[0] for row in rows]
+    except Exception as e:
+            print(f"Error fetching pending friend requests: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error.")
     finally:
         cursor.close()
         conn.close()

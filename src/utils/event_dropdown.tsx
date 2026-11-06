@@ -1,12 +1,10 @@
-
+import { Button, Card, Col, Form, Row } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
-import {
-  Button,
-  Card,
-  Col,
-  Form,
-  Row,
-} from 'react-bootstrap';
+
+interface ShareChanges {
+  add: number[];    // friendshipIDs to INSERT into the DB
+  remove: number[]; // friendshipIDs to DELETE from the DB
+}
 
 interface EventData {
   eventID: number;
@@ -27,6 +25,7 @@ interface Friend {
 interface EditEventProps {
   event: EventData;
   friends: Friend[];
+  sharedFriendshipIDs: number[]; // friends who currently have access (loaded from the DB by the parent)
   onUpdateEvent: (updatedEvent: {
     eventID: number;
     title: string;
@@ -37,11 +36,10 @@ interface EditEventProps {
   }) => void | Promise<void>;
   onShareEvent: (
     eventID: number,
-    friendshipIDs: number[]
+    changes: ShareChanges
   ) => void | Promise<void>;
 }
 
-// Convert a MariaDB datetime into a datetime-local input value.
 function toDateTimeLocal(value: string) {
   return value.replace(' ', 'T').slice(0, 16);
 }
@@ -49,13 +47,14 @@ function toDateTimeLocal(value: string) {
 function EditEventForm({
   event,
   friends,
+  sharedFriendshipIDs,
   onUpdateEvent,
   onShareEvent,
 }: EditEventProps) {
+  const [selectedFriends, setSelectedFriends] = useState<number[]>(sharedFriendshipIDs) ;
   const [title, setTitle] = useState(event.title ?? '');
-  const [description, setDescription] = useState(
-    event.description ?? ''
-  );
+  const [description, setDescription] = useState(event.description ?? '') ;
+  const sharedKey = sharedFriendshipIDs.join(",") ;
   const [startTime, setStartTime] = useState(
     toDateTimeLocal(event.start_time)
   );
@@ -64,19 +63,18 @@ function EditEventForm({
   );
   const [visibility, setVisibility] = useState(event.visibility);
 
-  const [selectedFriends, setSelectedFriends] = useState<number[]>(
-    []
-  );
+useEffect(() => {
+  setTitle(event.title ?? '');
+  setDescription(event.description ?? '');
+  setStartTime(toDateTimeLocal(event.start_time));
+  setEndTime(toDateTimeLocal(event.end_time));
+  setVisibility(event.visibility);
+}, [event]);
 
-  // Reset the form when a different event is selected.
-  useEffect(() => {
-    setTitle(event.title ?? '');
-    setDescription(event.description ?? '');
-    setStartTime(toDateTimeLocal(event.start_time));
-    setEndTime(toDateTimeLocal(event.end_time));
-    setVisibility(event.visibility);
-    setSelectedFriends([]);
-  }, [event]);
+useEffect(() => {
+  setSelectedFriends(sharedFriendshipIDs);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [event.eventID, sharedKey]);
 
   const toggleFriend = (friendshipID: number) => {
     setSelectedFriends((current) =>
@@ -101,15 +99,23 @@ function EditEventForm({
     });
   };
 
-  const handleShare = async (
+    const toAdd = selectedFriends.filter(
+    (id) => !sharedFriendshipIDs.includes(id)
+  );
+  const toRemove = sharedFriendshipIDs.filter(
+    (id) => !selectedFriends.includes(id)
+  );
+  const hasShareChanges = toAdd.length > 0 || toRemove.length > 0;
+
+    const handleShare = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
     if (visibility !== 'private') return;
-    if (selectedFriends.length === 0) return;
+    if (!hasShareChanges) return; // nothing selected or changed, so do nothing
 
-    await onShareEvent(event.eventID, selectedFriends);
+    await onShareEvent(event.eventID, { add: toAdd, remove: toRemove });
   };
 
   return (
@@ -231,12 +237,12 @@ function EditEventForm({
                 </div>
               )}
 
-              <Button
+                            <Button
                 type="submit"
                 variant="success"
-                disabled={selectedFriends.length === 0}
+                disabled={!hasShareChanges || event.visibility !== 'private'}
               >
-                Share with Selected Friends
+                Save Sharing Changes
               </Button>
             </Form>
           </>

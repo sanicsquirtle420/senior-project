@@ -1,7 +1,7 @@
 import { useSearchParams, Link } from "react-router-dom" ;
 import { Button, Collapse, Table } from "react-bootstrap" ;
 import EditEventForm from "../utils/event_dropdown" ;
-import { useState, useEffect, Fragment } from "react" ;
+import { useState, useEffect, Fragment, useMemo } from "react" ;
 import Navbar from "../utils/navbar" ;
 import { Friend } from "../utils/types" ;
 
@@ -38,11 +38,12 @@ const Calendar = () => {
     const [ friendEvents, setFriendEvents ] = useState("") ;
     const [ friendsList, setFriendslist ] = useState<Friend[]>([])
     const [ expandedEventID, setExpandedEventID ] = useState<number | null>(null) ;
-
-    const toggleEvent = (eventID: number) => {
-        setExpandedEventID((currentID) =>
-        currentID === eventID ? null : eventID) ;
-    } ;
+    const [ sharedFriendshipIDs, setSharedFriendshipIDs ] = useState<number[]>([]) ;
+    // const sharedFriendshipIDs = useMemo( () => friendsList 
+    //     .filter((f) => sharedUserIDs.includes(Number(f.userID)))
+    //     .map((f) => Number(f.friendshipID)),
+    // [friendsList, sharedUserIDs] ) ;
+    const selectedEvent = events.find((e) => e.eventID === expandedEventID) ?? null ;
 
     useEffect(() => {
         if (!dateParam) return ;
@@ -53,7 +54,6 @@ const Calendar = () => {
                 const userID = rawData ? JSON.parse(rawData).id : null ;
                 if (!userID) throw new Error("You need to be logged in.") ;
 
-                // local midnight to next local midnight, converted to UTC
                 const [year, month, day] = dateParam.split("-").map(Number) ;
                 const dayStart = new Date(year, month - 1, day) ;
                 const dayEnd = new Date(year, month - 1, day + 1) ;
@@ -162,21 +162,43 @@ useEffect(() => {
     getFriendEvents();
 }, [dateParam]);
 
+const loadShares = async (eventID: number) => {
+    const params = new URLSearchParams({ eventID: String(eventID) }) ;
+    const response = await fetch(`https://api.raccoon2891.com/get_event_shares?${params}`) ;
+
+    if (!response.ok) throw new Error("Failed to load shared friends.");
+
+    const rows = await response.json() ;
+    setSharedFriendshipIDs(
+        rows.map((row: number | number[] | { friendshipID: number }) => {
+            if (Array.isArray(row)) return Number(row[0]) ;
+            if (typeof row === "object") return Number(row.friendshipID) ;
+            return Number(row) ;
+        })) ;
+
+} ;
+
+   useEffect(() => {
+       setSharedFriendshipIDs([]);
+
+       if (!selectedEvent || selectedEvent.visibility !== "private") return;
+
+       loadShares(selectedEvent.eventID).catch((err) => setError(err.message));
+   }, [selectedEvent?.eventID, selectedEvent?.visibility]);
+
 const sharePrivate = async (
     eventID: number,
-    friendshipIDs: number[]
+    changes: { add: number[]; remove: number[] }
 ) => {
-    const response = await fetch("https://api.raccoon2891.com/share_private",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({eventID, friendshipIDs})
-        }
-    ) ;
+    const response = await fetch("https://api.raccoon2891.com/share_private", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventID, addIDs: changes.add, removeIDs: changes.remove }),
+    });
 
-    if (!response.ok) {throw new Error("Failed to share event.")} ;
+    if (!response.ok) throw new Error("Failed to share event.");
+
+    await loadShares(eventID); 
 }
 
     if (!dateParam) return <p>No date selected.</p> ;
@@ -312,6 +334,7 @@ const updateEvent = async (updatedEvent: {
                                             event={ev}
                                             friends={friendsList}
                                             onUpdateEvent={updateEvent}
+                                            sharedFriendshipIDs={sharedFriendshipIDs}
                                             onShareEvent={sharePrivate}
                                         />
                                     </div>
@@ -350,4 +373,4 @@ const updateEvent = async (updatedEvent: {
     ) ;
 } ;
 
-export default Calendar ;
+export default Calendar ; 
