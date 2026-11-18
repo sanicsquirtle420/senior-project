@@ -31,9 +31,10 @@ const Login = () => {
              
             const data = (await response.json()) as LoginResponse ;
             const { token, ...user} = data ;
-
             login(user, token) ;
-            navigate("/dashboard") ;
+
+            console.log("[LOG] ROLE:", user) ;
+            navigate(user?.role === "admin" ? "/admin/dashboard" : "/dashboard") ;
         } catch (err) {
             setError(err.message) ;
         } finally {
@@ -42,6 +43,8 @@ const Login = () => {
     } ;
 
     return (
+        <>
+        <title>Login</title>
         <form onSubmit={handleLogin}>
             <h1>Login</h1>
             {error && <p style={{color: "#f38ba8"}}>{error}</p>}
@@ -74,6 +77,7 @@ const Login = () => {
 
             <br /><p>Don't have an account? <Link to="/signup">Sign Up</Link> | Return to <Link to="/">home</Link>.</p>
         </form>
+        </>
     ) ;
 } ;
 

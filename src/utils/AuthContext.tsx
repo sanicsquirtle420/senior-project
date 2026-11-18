@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         const savedUser = localStorage.getItem(KEYS.user) ;
-        const savedToken = localStorage.getItem(KEYS.expires) ;
+        const savedToken = localStorage.getItem(KEYS.token) ;
         const savedExpires = localStorage.getItem(KEYS.expires) ;
 
         if(savedUser && savedToken) {

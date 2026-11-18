@@ -1,11 +1,13 @@
 import { useSearchParams, Link } from "react-router-dom" ;
-import { Button, Collapse, Table } from "react-bootstrap" ;
+import { Button, Table, Collapse } from "react-bootstrap" ;
 import EditEventForm from "../utils/event_dropdown" ;
 import { useState, useEffect, Fragment, useMemo } from "react" ;
 import Navbar from "../utils/navbar" ;
 import { Friend } from "../utils/types" ;
+import { authFetch } from "../utils/api" ;
+import { useAuth } from "../utils/AuthContext" ;
 
-function toDB(date) {
+function toDB(date: Date | string): string {
     const dateObj = date instanceof Date ? date: new Date(date)
     return dateObj.toISOString().slice(0, 19).replace("T", " ") ;
 }
@@ -31,6 +33,7 @@ function tomorrow(dateParam: string): string {
 }
 
 const Calendar = () => {
+    const { user, token } = useAuth() ;
     const [searchParams] = useSearchParams() ;
     const dateParam = searchParams.get("date") ;
     const [events, setEvents] = useState([]) ;
@@ -39,10 +42,6 @@ const Calendar = () => {
     const [ friendsList, setFriendslist ] = useState<Friend[]>([])
     const [ expandedEventID, setExpandedEventID ] = useState<number | null>(null) ;
     const [ sharedFriendshipIDs, setSharedFriendshipIDs ] = useState<number[]>([]) ;
-    // const sharedFriendshipIDs = useMemo( () => friendsList 
-    //     .filter((f) => sharedUserIDs.includes(Number(f.userID)))
-    //     .map((f) => Number(f.friendshipID)),
-    // [friendsList, sharedUserIDs] ) ;
     const selectedEvent = events.find((e) => e.eventID === expandedEventID) ?? null ;
 
     useEffect(() => {
@@ -58,13 +57,12 @@ const Calendar = () => {
                 const dayStart = new Date(year, month - 1, day) ;
                 const dayEnd = new Date(year, month - 1, day + 1) ;
 
-                const params = new URLSearchParams({
-                    user_id: userID,
+                const params = new URLSearchParams({ 
                     start: toDB(dayStart),
                     end: toDB(dayEnd),
                 }) ;
 
-                const response = await fetch(`https://api.raccoon2891.com/get_events?${params}`) ;
+                const response = await authFetch(`/get_events?${params}`, token) ;
                 
                 if (!response.ok) throw new Error("Failed to load events.") ;
 
@@ -95,13 +93,9 @@ useEffect(() => {
             const dayStart = new Date(year, month - 1, day);
             const dayEnd = new Date(year, month - 1, day + 1);
 
-            const fParams = new URLSearchParams({
-                userID: String(userID)
-            });
-
-            const frResponse = await fetch(
-                `https://api.raccoon2891.com/get_friends?${fParams}`
-            );
+            const frResponse = await authFetch(
+                `/get_friends?`
+            , token);
 
             if (!frResponse.ok) {
                 throw new Error("Failed to load friends.");
@@ -127,15 +121,15 @@ useEffect(() => {
                 await Promise.all(
                     friendIDs.map(async (friendID: number) => {
                         const params = new URLSearchParams({
-                            userID: String(userID),
+                            userID: String(user.id),
                             friendID: String(friendID),
                             start: toDB(dayStart),
                             end: toDB(dayEnd)
                         });
 
-                        const response = await fetch(
-                            `https://api.raccoon2891.com/friend_events?${params}`
-                        );
+                        const response = await authFetch(
+                            `/friend_events?${params}`
+                        , token);
 
                         if (!response.ok) {
                             throw new Error(
@@ -164,7 +158,7 @@ useEffect(() => {
 
 const loadShares = async (eventID: number) => {
     const params = new URLSearchParams({ eventID: String(eventID) }) ;
-    const response = await fetch(`https://api.raccoon2891.com/get_event_shares?${params}`) ;
+    const response = await authFetch(`/get_event_shares?${params}`, token) ;
 
     if (!response.ok) throw new Error("Failed to load shared friends.");
 
@@ -190,7 +184,7 @@ const sharePrivate = async (
     eventID: number,
     changes: { add: number[]; remove: number[] }
 ) => {
-    const response = await fetch("https://api.raccoon2891.com/share_private", {
+    const response = await authFetch("/share_private", token, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ eventID, addIDs: changes.add, removeIDs: changes.remove }),
@@ -232,7 +226,7 @@ const updateEvent = async (updatedEvent: {
         const startUTC = toDB(updatedEvent.start_time) ;
         const endUTC = toDB(updatedEvent.end_time) ;
 
-        const response = await fetch("https://api.raccoon2891.com/update_event", {
+        const response = await authFetch("/update_event", token, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
@@ -257,6 +251,8 @@ const updateEvent = async (updatedEvent: {
 }
 
     return (
+        <>
+        <title>Calendar</title>
         <div>
             <h1>PlanPal: {formatted}</h1>
             <Navbar />
@@ -370,6 +366,7 @@ const updateEvent = async (updatedEvent: {
             </table>)}
             <p>Go <Link to={"/calendar?date=" + yesterday(dateParam)}>back</Link> a day. | Go <Link to={"/calendar?date=" + tomorrow(dateParam)}>forward</Link> a day.</p>
         </div>
+        </>
     ) ;
 } ;
 

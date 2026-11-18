@@ -1,13 +1,12 @@
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from database import get_connection
 from users import hash_password
+from admins import create_token, get_current_user_id, require_admin
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from typing import List
-import datetime
 import bcrypt
-import jwt
 import os
 
 origins = [
@@ -20,7 +19,7 @@ origins = [
 api = FastAPI(
     title="PlanPal API",
     description="This is the API that makes calls from the React frontend to the MariaDB database.",
-    version="2026-11-05",
+    version="2026-11-17",
     contact={
         "name": "Diego R. (SanicSquirtle428)",
         "url": "https://github.com/sanicsquirtle420"
@@ -88,7 +87,7 @@ def verify_login(request: LoginRequest):
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT userID, name, username, password FROM users WHERE email = %s LIMIT 1", (email,))
+        cursor.execute("SELECT userID, name, username, password, role FROM users WHERE email = %s LIMIT 1", (email,))
         db_result = cursor.fetchone()
         if db_result is None:
             raise HTTPException(status_code=401, detail="Invalid credientials")
@@ -96,13 +95,9 @@ def verify_login(request: LoginRequest):
         name = db_result[1]
         username = db_result[2]
         check_pw = db_result[3].encode("utf-8")
+        role = db_result[4]
         if bcrypt.checkpw(passwd, check_pw):
-            payload = {
-                "user_id": userID,
-                "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=60)
-            }
-            token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-            return {"id": userID, "username": username, "name": name, "token": token}
+            return {"id": userID, "username": username, "name": name, "token": create_token(userID), "role": role}
         else:
             raise HTTPException(status_code=401, detail="Invalid email or password.")
     except HTTPException:
@@ -145,7 +140,7 @@ def signup(request: NewEventRequest):
         conn.close()
 
 @api.get("/get_events", tags=["Events"])
-def get_events(user_id: int, start: str, end: str):
+def get_events(start: str, end: str, user_id: int = Depends(get_current_user_id)):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -165,7 +160,7 @@ def get_events(user_id: int, start: str, end: str):
         conn.close()
 
 @api.get("/get_friends", tags=["Friends"])
-def get_friends(userID: int):
+def get_friends(userID: int = Depends(get_current_user_id)):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -212,7 +207,7 @@ def new_friends(request: NewFriendRequest):
         conn.close()
 
 @api.get("/get_pending", tags=["Friends"])
-def get_pending(userID: int):
+def get_pending(userID: int = Depends(get_current_user_id)):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -438,3 +433,42 @@ def get_event_shares(eventID: int):
     finally:
         cursor.close()
         conn.close()
+
+@api.get("/admin/events", tags=["Admin"])
+def admin_list_events(admin_id: int = Depends(require_admin)):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            "SELECT e.eventID, e.ownerID, u.username, e.title, e.description, "
+            "e.start_time, e.end_time, e.visibility "
+            "FROM events e JOIN users u ON u.userID = e.ownerID "
+            "ORDER BY e.start_time DESC"
+        )
+        return cursor.fetchall()
+    except Exception as e:
+        print(f"Error listing events: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@api.delete("/admin/events/{event_id}", tags=["Admin"])
+def admin_delete_event(event_id: int, admin_id: int = Depends(require_admin)):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM events WHERE eventID = ?", (event_id,))
+        deleted = cursor.rowcount
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print(f"Error deleting event: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+    finally:
+        cursor.close()
+        conn.close()
+    if deleted == 0:
+        raise HTTPException(status_code=404, detail="Event not found.")
+    return {"message": "Event deleted."}

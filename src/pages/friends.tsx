@@ -2,6 +2,7 @@ import { useSearchParams } from "react-router-dom" ;
 import { useAuth } from "../utils/AuthContext" ;
 import Navbar from "../utils/navbar" ;
 import { useEffect, useState } from "react" ;
+import { authFetch } from "../utils/api" ;
 
 const Friends = () => {
     const [ loading, setLoading ] = useState(false) ;
@@ -9,7 +10,7 @@ const Friends = () => {
     const [ friendslist, setFriendslist ] = useState("") ;
     const [ pendinglist, setPendinglist ] = useState("") ;
     const [ frienduser, setFrienduser ] = useState("") ;
-    const { user } = useAuth() ;
+    const { user, token } = useAuth() ;
 
     const friendRequest = async (e) => {
         e.preventDefault() ;
@@ -25,10 +26,10 @@ const Friends = () => {
                 throw new Error("You need to be logged in to send a friend request.") ;
             }
 
-            const response = await fetch("https://api.raccoon2891.com/new_friends", {
+            const response = await authFetch("/new_friends", token, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user1ID: userID, user2: frienduser }),
+                body: JSON.stringify({ user1ID: String(user?.id), user2: frienduser }),
             }) ;
 
             if (!response.ok) {
@@ -51,11 +52,7 @@ const Friends = () => {
                 const userID = rawData ? JSON.parse(rawData).id : null ;
                 if (!userID) throw new Error("You need to be logged in.") ;
 
-                const params = new URLSearchParams({
-                    userID: userID,
-                }) ;
-
-                const response = await fetch(`https://api.raccoon2891.com/get_friends?${params}`)
+                const response = await authFetch(`/get_friends?`, token) ;
                 if (!response.ok) throw new Error("Failed to load friends.") ;
                 const data = await response.json() ;
                 setFriendslist(data) ;
@@ -76,11 +73,7 @@ const Friends = () => {
                 const userID = rawData ? JSON.parse(rawData).id : null ;
                 if (!userID) throw new Error("You need to be logged in.") ;
 
-                const params = new URLSearchParams({
-                    userID: userID,
-                }) ;
-
-                const response = await fetch(`https://api.raccoon2891.com/get_pending?${params}`)
+                const response = await authFetch(`/get_pending?`, token) ;
                 if (!response.ok) throw new Error("Failed to load friends.") ;
                 const data = await response.json() ;
                 setPendinglist(data) ;
@@ -105,7 +98,7 @@ const Friends = () => {
                 throw new Error("You need to be logged in to accept a friend request.") ;
             }
 
-            const response = await fetch("https://api.raccoon2891.com/accept_friend", {
+            const response = await authFetch("/accept_friend", token, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user1ID: id, user2ID: friendID, }),
@@ -134,7 +127,7 @@ const Friends = () => {
                 throw new Error("You need to be logged in to decline a friend request.") ;
             }
 
-            const response = await fetch("https://api.raccoon2891.com/decline_friend", {
+            const response = await authFetch("/decline_friend", token, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user1ID: id, user2ID: friendID, }),
@@ -163,7 +156,7 @@ const Friends = () => {
                 throw new Error("You need to be logged in to decline a friend request.") ;
             }
 
-            const response = await fetch("https://api.raccoon2891.com/remove_friend", {
+            const response = await authFetch("/remove_friend", token, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user1ID: id, user2ID: friendID, }),
@@ -181,6 +174,8 @@ const Friends = () => {
     }
 
     return (
+        <>
+        <title>Friends</title>
         <div>
             <h1>PlanPal: Friends</h1>
             <Navbar />
@@ -237,6 +232,7 @@ const Friends = () => {
             </table>)
             }
         </div>
+        </>
     ) ;
 } ;
 

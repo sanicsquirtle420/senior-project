@@ -1,5 +1,5 @@
 import { HashRouter as Router, Routes, Route } from "react-router-dom" ;
-import { ProtectedRoute } from "./utils/ProtectedRoute" ;
+import { ProtectedRoute, AdminRoute } from "./utils/ProtectedRoute" ;
 import { lazy, Suspense } from "react" ;
 const Index = lazy(() => import("./pages/index")) ; 
 const Dashboard = lazy(() => import("./pages/dashboard")) ;
@@ -7,6 +7,7 @@ const Login = lazy(() => import("./pages/login")) ;
 const Signup = lazy(() => import("./pages/signup")) ;
 const Calendar = lazy(() => import("./pages/calendar")) ;
 const Friends = lazy(() => import("./pages/friends")) ;
+const AdminDashboard = lazy(() => import("./pages/admin_dashboard")) ;
 
 function App() {
     return(
@@ -29,6 +30,8 @@ function App() {
                         <Route path="/calendar" element={<Calendar />}></Route>
                         <Route path="/friends" element={<Friends />}></Route>
                     </Route>
+
+                    <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
                 </Routes>
             </Suspense>
         </Router>

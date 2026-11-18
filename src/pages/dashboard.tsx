@@ -4,6 +4,7 @@ import Calendar from "react-calendar" ;
 import Navbar from "../utils/navbar" ;
 import { useEffect, useState } from "react" ;
 import "../calendar.css" ;
+import { authFetch } from "../utils/api" ;
 
 function toDateString(date) {
     const y = date.getFullYear() ;
@@ -17,6 +18,7 @@ function toDB(iso) {
 }
 
 const Dashboard = () => {
+    const { user, token } = useAuth() ;
     const [ title, setTitle ] = useState("") ;
     const [ desc, setDesc ] = useState("") ;
     const [ start_time, setStartTime ] = useState("") ;
@@ -25,7 +27,6 @@ const Dashboard = () => {
     const [ error, setError ] = useState("") ;
     const [ loading, setLoading ] = useState(false) ;
     const [ friendslist, setFriendslist ] = useState("") ;
-    const { user } = useAuth() ;
     const navigate = useNavigate() ;
 
     const newEvent = async (e) => {
@@ -45,7 +46,7 @@ const Dashboard = () => {
         const startUTC = toDB(start_time) ;
         const endUTC = toDB(end_time) ;
 
-        const response = await fetch("https://api.raccoon2891.com/new_event", {
+        const response = await authFetch("/new_event", token, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ user_id: userID, title, desc, start_time: startUTC, end_time: endUTC, visibility }),
@@ -76,11 +77,7 @@ useEffect(() => {
                 const userID = rawData ? JSON.parse(rawData).id : null ;
                 if (!userID) throw new Error("You need to be logged in.") ;
 
-                const params = new URLSearchParams({
-                    userID: userID,
-                }) ;
-
-                const response = await fetch(`https://api.raccoon2891.com/get_friends?${params}`)
+                const response = await authFetch(`/get_friends?`, token)
                 if (!response.ok) throw new Error("Failed to load friends.") ;
                 const data = await response.json() ;
                 setFriendslist(data) ;
@@ -94,6 +91,8 @@ useEffect(() => {
     }, []) ;
 
     return(
+        <>
+        <title>Dashboard</title>
         <div>
             <h1>Welcome to PlanPal, {user?.name}</h1>
             <Navbar />
@@ -183,6 +182,7 @@ useEffect(() => {
             </table>)
             }
         </div>
+        </>
     ) ;
 } ;
 

@@ -39,6 +39,8 @@ const Signup = () => {
     } ;
 
     return (
+        <>
+        <title>Sign Up</title>
         <form onSubmit={handleSignup}>
             <h1>Signup</h1>
             {error && <p style={{color: "#f38ba8"}}>{error}</p>}
@@ -97,6 +99,7 @@ const Signup = () => {
 
             <p>Already have an account? <Link to="/login">Login</Link> | Return to <Link to="/">home</Link>.</p>
         </form>
+        </>
     ) ;
 } ;
 
